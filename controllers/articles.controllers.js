@@ -1,7 +1,9 @@
 const {
     selectArticleById,
     fetchArticles,
+    selectCommentsByArticleId,
 } = require('../models/articles.models');
+const { checkArticleExists } = require('../db/seeds/utils');
 
 exports.getArticleById = (req, res, next) => {
     const { article_id } = req.params;
@@ -17,6 +19,15 @@ exports.getArticles = (req, res, next) => {
     fetchArticles(sort_by, order)
         .then((articles) => {
             res.status(200).send({ articles });
+        })
+        .catch((err) => next(err));
+};
+
+exports.getCommentsByArticleId = (req, res, next) => {
+    const { article_id } = req.params;
+    selectCommentsByArticleId(article_id)
+        .then((comment) => {
+            res.status(200).send({ comment });
         })
         .catch((err) => next(err));
 };
