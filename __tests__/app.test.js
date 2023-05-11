@@ -117,9 +117,9 @@ describe('/api/articles', () => {
                 });
             });
     });
-    test('GET - status: 200 - sort by created_at', () => {
+    test('GET - status: 200 - sort by created_at by default', () => {
         return request(app)
-            .get('/api/articles?sort_by=created_at')
+            .get('/api/articles')
             .expect(200)
             .then((response) => {
                 expect(response.body.articles).toBeSortedBy('created_at', {
