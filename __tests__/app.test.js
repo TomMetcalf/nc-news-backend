@@ -36,8 +36,8 @@ describe('/api', () => {
                 const expectedResponse = JSON.parse(data);
                 return request(app)
                     .get('/api')
+                    .expect(200)
                     .then((response) => {
-                        expect(response.status).toBe(200);
                         expect(response.body).toEqual(expectedResponse);
                     });
             });
@@ -59,7 +59,6 @@ describe('/api/articles/:article_id', () => {
             .expect(200)
             .then((response) => {
                 const article = response.body.article;
-                console.log(article);
                 expect(article.article_id).toBe(1);
                 expect(article.title).toBe(
                     'Living in the shadow of a great man'
@@ -82,12 +81,56 @@ describe('/api/articles/:article_id', () => {
                 expect(response.body).toEqual({ msg: 'Bad Request' });
             });
     });
-    test('GET - status: 404 - request in valid but not found', () => {
+    test('GET - status: 404 - request is valid but not found', () => {
         return request(app)
             .get('/api/articles/100')
             .expect(404)
             .then((response) => {
                 expect(response.body).toEqual({ msg: 'article not found!' });
+            });
+    });
+});
+
+describe('/api/articles/:article_id/comments', () => {
+    test('GET - status: 200 - responds with an array of comments for the given article_id', () => {
+        return request(app)
+            .get('/api/articles/3/comments')
+            .expect(200)
+            .then((response) => {
+                const comment = response.body.comment[0];
+                expect(comment.article_id).toBe(3);
+                expect(comment.comment_id).toBe(10);
+                expect(comment.votes).toBe(0);
+                expect(comment.created_at).toBe('2020-06-20T07:24:00.000Z');
+                expect(comment.author).toBe('icellusedkars');
+                expect(comment.body).toBe('git push origin master');
+                expect(response.body.comment).toBeSortedBy('created_at', {
+                    descending: false,
+                });
+            });
+    });
+    test('GET - status: 200 - responds with an empty array for an article_id that has no comments', () => {
+        return request(app)
+            .get('/api/articles/2/comments')
+            .expect(200)
+            .then((response) => {
+                expect(response.body.comment).toEqual([]);
+            });
+    });
+    test('GET - status: 404 - request is valid but not found', () => {
+        return request(app)
+            .get('/api/articles/100/comments')
+            .expect(404)
+            .then((response) => {
+                expect(response.body).toEqual({ msg: 'article not found!' });
+            });
+    });
+    test('GET - status: 400 - requested id is not valid', () => {
+        return request(app)
+            .get('/api/articles/nonsense/comments')
+            .expect(400)
+            .then((response) => {
+                expect(response.body).toEqual({ msg: 'Bad Request' });
             });
     });
 });
