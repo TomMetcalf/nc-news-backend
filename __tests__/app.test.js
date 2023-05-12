@@ -14,105 +14,156 @@ afterAll(() => {
 });
 
 describe('/api', () => {
-    test('GET - status: 200 - returns a JSON object with all available endpoints', () => {
-        return fs
-            .readFile(`${__dirname}/../endpoints.json`, 'utf8')
-            .then((data) => {
-                const expectedResponse = JSON.parse(data);
-                return request(app)
-                    .get('/api')
-                    .expect(200)
-                    .then((response) => {
-                        expect(response.body).toEqual(expectedResponse);
-                    });
-            });
-    });
-    test('GET - status: 404 - returns a error when endpoint is not found', () => {
-        return request(app)
-            .get('/api/nonsense')
-            .expect(404)
-            .then((response) => {
-                expect(response.body.msg).toBe('not found!');
-            });
+    describe('GET', () => {
+        test('GET - status: 200 - returns a JSON object with all available endpoints', () => {
+            return fs
+                .readFile(`${__dirname}/../endpoints.json`, 'utf8')
+                .then((data) => {
+                    const expectedResponse = JSON.parse(data);
+                    return request(app)
+                        .get('/api')
+                        .expect(200)
+                        .then((response) => {
+                            expect(response.body).toEqual(expectedResponse);
+                        });
+                });
+        });
+        test('GET - status: 404 - returns a error when endpoint is not found', () => {
+            return request(app)
+                .get('/api/nonsense')
+                .expect(404)
+                .then((response) => {
+                    expect(response.body.msg).toBe('not found!');
+                });
+        });
     });
 });
 
 describe('/api/topics', () => {
-    test('GET - status: 200 - returns the correct information', () => {
-        return request(app)
-            .get('/api/topics')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.topics.length).toBe(3);
-                response.body.topics.forEach((topic) => {
-                    expect(typeof topic.slug).toBe('string');
-                    expect(typeof topic.description).toBe('string');
+    describe('GET', () => {
+        test('GET - status: 200 - returns the correct information', () => {
+            return request(app)
+                .get('/api/topics')
+                .expect(200)
+                .then((response) => {
+                    expect(response.body.topics.length).toBe(3);
+                    response.body.topics.forEach((topic) => {
+                        expect(typeof topic.slug).toBe('string');
+                        expect(typeof topic.description).toBe('string');
+                    });
                 });
-            });
+        });
+    });
+});
+
+describe('/api/users', () => {
+    describe('GET', () => {
+        test('GET - status: 200 - returns the correct information', () => {
+            return request(app)
+                .get('/api/users')
+                .expect(200)
+                .then((response) => {
+                    expect(response.body.users.length).toBe(4);
+                    response.body.users.forEach((user) => {
+                        expect(typeof user.username).toBe('string');
+                        expect(typeof user.name).toBe('string');
+                        expect(typeof user.avatar_url).toBe('string');
+                    });
+                });
+        });
+    });
+});
+
+describe('/api/comments/:comment_id', () => {
+    describe('DELETE', () => {
+        test('DELETE - status: 204 - delete the specified comment', () => {
+            return request(app).delete('/api/comments/1').expect(204);
+        });
+
+        test('DELETE - status: 404 - request is valid but not found', () => {
+            return request(app)
+                .delete('/api/comments/100')
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'comment not found!',
+                    });
+                });
+        });
+        test('DELETE - status: 400 - requested id is not valid', () => {
+            return request(app)
+                .delete('/api/comments/nonsense')
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({ msg: 'bad request!' });
+                });
+        });
     });
 });
 
 describe('/api/articles', () => {
-    test('GET - status: 200 - returns the correct information', () => {
-        return request(app)
-            .get('/api/articles')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.articles.length).toBe(12);
-            });
-    });
-    test('GET - status: 200 - all required columns are returned', () => {
-        return request(app)
-            .get('/api/articles')
-            .expect(200)
-            .then((response) => {
-                response.body.articles.forEach((article) => {
-                    expect(typeof article.author).toBe('string');
-                    expect(typeof article.title).toBe('string');
-                    expect(typeof article.article_id).toBe('number');
-                    expect(typeof article.topic).toBe('string');
-                    expect(typeof article.created_at).toBe('string');
-                    expect(typeof article.votes).toBe('number');
-                    expect(typeof article.article_img_url).toBe('string');
-                    expect(typeof article.comment_count).toBe('number');
+    describe('GET', () => {
+        test('GET - status: 200 - returns the correct information', () => {
+            return request(app)
+                .get('/api/articles')
+                .expect(200)
+                .then((response) => {
+                    expect(response.body.articles.length).toBe(12);
                 });
-            });
-    });
-    test('GET - status: 200 - sort by created_at', () => {
-        return request(app)
-            .get('/api/articles?sort_by=created_at')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.articles).toBeSortedBy('created_at', {
-                    descending: true,
+        });
+        test('GET - status: 200 - all required columns are returned', () => {
+            return request(app)
+                .get('/api/articles')
+                .expect(200)
+                .then((response) => {
+                    response.body.articles.forEach((article) => {
+                        expect(typeof article.author).toBe('string');
+                        expect(typeof article.title).toBe('string');
+                        expect(typeof article.article_id).toBe('number');
+                        expect(typeof article.topic).toBe('string');
+                        expect(typeof article.created_at).toBe('string');
+                        expect(typeof article.votes).toBe('number');
+                        expect(typeof article.article_img_url).toBe('string');
+                        expect(typeof article.comment_count).toBe('number');
+                    });
                 });
-            });
-    });
-    test('GET - status: 200 - sort by created_at in descending order', () => {
-        return request(app)
-            .get('/api/articles?sort_by=created_at&order=desc')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.articles).toBeSortedBy('created_at', {
-                    descending: true,
+        });
+        test('GET - status: 200 - sort by created_at', () => {
+            return request(app)
+                .get('/api/articles?sort_by=created_at')
+                .expect(200)
+                .then((response) => {
+                    expect(response.body.articles).toBeSortedBy('created_at', {
+                        descending: true,
+                    });
                 });
-            });
-    });
-    test('GET - status: 400 - invalid sort criteria', () => {
-        return request(app)
-            .get('/api/articles?sort_by=DROP_TABLE')
-            .expect(400)
-            .then((response) => {
-                expect(response.body.msg).toBe('invalid sort query');
-            });
-    });
-    test('GET - status: 400 - invalid order criteria', () => {
-        return request(app)
-            .get('/api/articles?order=nonsense')
-            .expect(400)
-            .then((response) => {
-                expect(response.body.msg).toBe('invalid order query');
-            });
+        });
+        test('GET - status: 200 - sort by created_at in descending order', () => {
+            return request(app)
+                .get('/api/articles?sort_by=created_at&order=desc')
+                .expect(200)
+                .then((response) => {
+                    expect(response.body.articles).toBeSortedBy('created_at', {
+                        descending: true,
+                    });
+                });
+        });
+        test('GET - status: 400 - invalid sort criteria', () => {
+            return request(app)
+                .get('/api/articles?sort_by=DROP_TABLE')
+                .expect(400)
+                .then((response) => {
+                    expect(response.body.msg).toBe('invalid sort query');
+                });
+        });
+        test('GET - status: 400 - invalid order criteria', () => {
+            return request(app)
+                .get('/api/articles?order=nonsense')
+                .expect(400)
+                .then((response) => {
+                    expect(response.body.msg).toBe('invalid order query');
+                });
+        });
     });
 });
 
@@ -395,45 +446,10 @@ describe('/api/articles/:article_id', () => {
     });
 });
 
-describe('/api/comments/:comment_id', () => {
-    describe('DELETE', () => {
-        test('DELETE - status: 204 - delete the specified comment', () => {
-            return request(app).delete('/api/comments/1').expect(204);
+describe('/api/articles?topic', () => {
+    describe('GET', () => {
+        test('GET - status: 200 - returns the correct information', () => {
+            return request(app).get('/api/articles?topic=mitch').expect(200);
         });
-
-        test('DELETE - status: 404 - request is valid but not found', () => {
-            return request(app)
-                .delete('/api/comments/100')
-                .expect(404)
-                .then((response) => {
-                    expect(response.body).toEqual({
-                        msg: 'comment not found!',
-                    });
-                });
-        });
-        test('DELETE - status: 400 - requested id is not valid', () => {
-            return request(app)
-                .delete('/api/comments/nonsense')
-                .expect(400)
-                .then((response) => {
-                    expect(response.body).toEqual({ msg: 'bad request!' });
-                });
-        });
-    });
-});
-
-describe('/api/users', () => {
-    test('GET - status: 200 - returns the correct information', () => {
-        return request(app)
-            .get('/api/users')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.users.length).toBe(4);
-                response.body.users.forEach((user) => {
-                    expect(typeof user.username).toBe('string');
-                    expect(typeof user.name).toBe('string');
-                    expect(typeof user.avatar_url).toBe('string');
-                });
-            });
     });
 });
