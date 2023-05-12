@@ -222,6 +222,39 @@ describe('/api/articles/:article_id/comments', () => {
                     expect(typeof postedComment.created_at).toBe('string');
                 });
         });
+        test('POST - status: 201 - responds with newly created comment, ignoring unnecessary properties', () => {
+            const testComment = {
+                username: 'icellusedkars',
+                body: 'this is the best news ever!',
+                rating: 5
+            };
+            return request(app)
+                .post('/api/articles/6/comments')
+                .send(testComment)
+                .expect(201)
+                .then((response) => {
+                    const postedComment = response.body.comment;
+                    expect(postedComment.comment_id).toBe(19);
+                    expect(postedComment.body).toBe(
+                        'this is the best news ever!'
+                    );
+                    expect(postedComment.author).toBe('icellusedkars');
+                    expect(postedComment.votes).toBe(0);
+                    expect(typeof postedComment.created_at).toBe('string');
+                });
+        });
+        test('POST - status: 400 - responds with an error if required fields are missing', () => {
+            const testComment = {
+                username: 'icellusedkars',
+            };
+            return request(app)
+                .post('/api/articles/6/comments')
+                .send(testComment)
+                .expect(400)
+                .then((response) => {
+                    expect(response.body.msg).toBe('missing required field!');
+                });
+        });
         test('POST - status: 404 - request is valid but not found', () => {
             const testComment = {
                 username: 'icellusedkars',
@@ -250,7 +283,7 @@ describe('/api/articles/:article_id/comments', () => {
                     expect(response.body).toEqual({ msg: 'bad request!' });
                 });
         });
-        test('POST - status: 400 - username is not valid', () => {
+        test('POST - status: 404 - username is not valid', () => {
             const testComment = {
                 username: 'jon123',
                 body: 'this is the best news ever!',
@@ -258,7 +291,7 @@ describe('/api/articles/:article_id/comments', () => {
             return request(app)
                 .post('/api/articles/6/comments')
                 .send(testComment)
-                .expect(400)
+                .expect(404)
                 .then((response) => {
                     expect(response.body).toEqual({
                         msg: 'user does not exist!',
@@ -267,4 +300,3 @@ describe('/api/articles/:article_id/comments', () => {
         });
     });
 });
-

@@ -24,11 +24,6 @@ app.use((err, req, res, next) => {
     } else next(err);
 });
 
-app.use((err, req, res, next) => {
-    if (err.code === '25303') {
-        res.status(400).send({ msg: 'user does not exist!' });
-    } else next(err);
-});
 
 app.use((err, req, res, next) => {
     if (err.status && err.msg) {
