@@ -2,6 +2,7 @@ const {
     selectArticleById,
     fetchArticles,
     selectCommentsByArticleId,
+    updateArticleVotes,
 } = require('../models/articles.models');
 const { checkArticleExists } = require('../db/seeds/utils');
 
@@ -30,4 +31,16 @@ exports.getCommentsByArticleId = (req, res, next) => {
             res.status(200).send({ comment });
         })
         .catch((err) => next(err));
+};
+
+exports.patchArticleVotesByArticleId = (req, res, next) => {
+    const { article_id } = req.params;
+    const { inc_votes } = req.body;
+    updateArticleVotes(article_id, inc_votes)
+        .then((article) => {
+            res.status(200).send({ article });
+        })
+        .catch((err) => {
+            next(err);
+        });
 };

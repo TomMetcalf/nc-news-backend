@@ -5,6 +5,7 @@ const {
     getArticleById,
     getArticles,
     getCommentsByArticleId,
+    patchArticleVotesByArticleId,
 } = require('./controllers/articles.controllers');
 const { postComment } = require('./controllers/comment.controllers');
 const app = express();
@@ -17,13 +18,13 @@ app.get('/api/articles/:article_id', getArticleById);
 app.get('/api/articles', getArticles);
 app.get('/api/articles/:article_id/comments', getCommentsByArticleId);
 app.post('/api/articles/:article_id/comments', postComment);
+app.patch('/api/articles/:article_id', patchArticleVotesByArticleId);
 
 app.use((err, req, res, next) => {
     if (err.code === '22P02') {
         res.status(400).send({ msg: 'bad request!' });
     } else next(err);
 });
-
 
 app.use((err, req, res, next) => {
     if (err.status && err.msg) {

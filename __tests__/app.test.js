@@ -13,21 +13,6 @@ afterAll(() => {
     return connection.end();
 });
 
-describe('/api/topics', () => {
-    test('GET - status: 200 - returns the correct information', () => {
-        return request(app)
-            .get('/api/topics')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.topics.length).toBe(3);
-                response.body.topics.forEach((topic) => {
-                    expect(typeof topic.slug).toBe('string');
-                    expect(typeof topic.description).toBe('string');
-                });
-            });
-    });
-});
-
 describe('/api', () => {
     test('GET - status: 200 - returns a JSON object with all available endpoints', () => {
         return fs
@@ -42,7 +27,7 @@ describe('/api', () => {
                     });
             });
     });
-    test('get - status: 404 - returns a error when endpoint is not found', () => {
+    test('GET - status: 404 - returns a error when endpoint is not found', () => {
         return request(app)
             .get('/api/nonsense')
             .expect(404)
@@ -52,41 +37,17 @@ describe('/api', () => {
     });
 });
 
-describe('/api/articles/:article_id', () => {
-    test('GET - status: 200 - responds with article with specified id', () => {
+describe('/api/topics', () => {
+    test('GET - status: 200 - returns the correct information', () => {
         return request(app)
-            .get('/api/articles/1')
+            .get('/api/topics')
             .expect(200)
             .then((response) => {
-                const article = response.body.article;
-                expect(article.article_id).toBe(1);
-                expect(article.title).toBe(
-                    'Living in the shadow of a great man'
-                );
-                expect(article.topic).toBe('mitch');
-                expect(article.author).toBe('butter_bridge');
-                expect(article.body).toBe('I find this existence challenging');
-                expect(article.created_at).toBe('2020-07-09T20:11:00.000Z');
-                expect(article.votes).toBe(100);
-                expect(article.article_img_url).toBe(
-                    'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
-                );
-            });
-    });
-    test('GET - status: 400 - requested id is not valid', () => {
-        return request(app)
-            .get('/api/articles/nonsense')
-            .expect(400)
-            .then((response) => {
-                expect(response.body).toEqual({ msg: 'bad request!' });
-            });
-    });
-    test('GET - status: 404 - request is valid but not found', () => {
-        return request(app)
-            .get('/api/articles/100')
-            .expect(404)
-            .then((response) => {
-                expect(response.body).toEqual({ msg: 'article not found!' });
+                expect(response.body.topics.length).toBe(3);
+                response.body.topics.forEach((topic) => {
+                    expect(typeof topic.slug).toBe('string');
+                    expect(typeof topic.description).toBe('string');
+                });
             });
     });
 });
@@ -226,7 +187,7 @@ describe('/api/articles/:article_id/comments', () => {
             const testComment = {
                 username: 'icellusedkars',
                 body: 'this is the best news ever!',
-                rating: 5
+                rating: 5,
             };
             return request(app)
                 .post('/api/articles/6/comments')
@@ -295,6 +256,139 @@ describe('/api/articles/:article_id/comments', () => {
                 .then((response) => {
                     expect(response.body).toEqual({
                         msg: 'user does not exist!',
+                    });
+                });
+        });
+    });
+});
+
+describe('/api/articles/:article_id', () => {
+    describe('GET', () => {
+        test('GET - status: 200 - responds with article with specified id', () => {
+            return request(app)
+                .get('/api/articles/1')
+                .expect(200)
+                .then((response) => {
+                    const article = response.body.article;
+                    expect(article.article_id).toBe(1);
+                    expect(article.title).toBe(
+                        'Living in the shadow of a great man'
+                    );
+                    expect(article.topic).toBe('mitch');
+                    expect(article.author).toBe('butter_bridge');
+                    expect(article.body).toBe(
+                        'I find this existence challenging'
+                    );
+                    expect(article.created_at).toBe('2020-07-09T20:11:00.000Z');
+                    expect(article.votes).toBe(100);
+                    expect(article.article_img_url).toBe(
+                        'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
+                    );
+                });
+        });
+        test('GET - status: 400 - requested id is not valid', () => {
+            return request(app)
+                .get('/api/articles/nonsense')
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({ msg: 'bad request!' });
+                });
+        });
+        test('GET - status: 404 - request is valid but not found', () => {
+            return request(app)
+                .get('/api/articles/100')
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'article not found!',
+                    });
+                });
+        });
+    });
+    describe('PATCH', () => {
+        test('PATCH - status: 200 - responds with the updated article showing new votes - positive votes', () => {
+            const testVote = { inc_votes: 5 };
+            return request(app)
+                .patch('/api/articles/3')
+                .send(testVote)
+                .expect(200)
+                .then((response) => {
+                    const votedArticle = response.body.article;
+                    expect(votedArticle.article_id).toBe(3);
+                    expect(votedArticle.title).toBe(
+                        'Eight pug gifs that remind me of mitch'
+                    );
+                    expect(votedArticle.topic).toBe('mitch');
+                    expect(votedArticle.author).toBe('icellusedkars');
+                    expect(votedArticle.votes).toBe(5);
+                    expect(typeof votedArticle.body).toBe('string');
+                    expect(typeof votedArticle.created_at).toBe('string');
+                    expect(typeof votedArticle.article_img_url).toBe('string');
+                });
+        });
+        test('PATCH - status: 200 - responds with the updated article showing new votes - negative votes', () => {
+            const testVote = { inc_votes: -5 };
+            return request(app)
+                .patch('/api/articles/3')
+                .send(testVote)
+                .expect(200)
+                .then((response) => {
+                    const votedArticle = response.body.article;
+                    expect(votedArticle.article_id).toBe(3);
+                    expect(votedArticle.title).toBe(
+                        'Eight pug gifs that remind me of mitch'
+                    );
+                    expect(votedArticle.topic).toBe('mitch');
+                    expect(votedArticle.author).toBe('icellusedkars');
+                    expect(votedArticle.votes).toBe(-5);
+                    expect(typeof votedArticle.body).toBe('string');
+                    expect(typeof votedArticle.created_at).toBe('string');
+                    expect(typeof votedArticle.article_img_url).toBe('string');
+                });
+        });
+        test('PATCH - status: 400 - responds with an error if required fields are missing', () => {
+            const testVote = {};
+            return request(app)
+                .patch('/api/articles/3/')
+                .send(testVote)
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'missing required field!',
+                    });
+                });
+        });
+        test('PATCH - status: 400 - responds with an error if inc_votes is not a number', () => {
+            const testVote = { inc_votes: 'five' };
+            return request(app)
+                .patch('/api/articles/3/')
+                .send(testVote)
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'bad request!',
+                    });
+                });
+        });
+        test('PATCH - status: 400 - requested id is not valid', () => {
+            const testVote = { inc_votes: 5 };
+            return request(app)
+                .patch('/api/articles/nonsense')
+                .send(testVote)
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({ msg: 'bad request!' });
+                });
+        });
+        test('PATCH - status: 404 - request is valid but not found', () => {
+            const testVote = { inc_votes: 5 };
+            return request(app)
+                .patch('/api/articles/100/')
+                .send(testVote)
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'article not found!',
                     });
                 });
         });
