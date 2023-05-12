@@ -394,3 +394,30 @@ describe('/api/articles/:article_id', () => {
         });
     });
 });
+
+describe('/api/comments/:comment_id', () => {
+    describe('DELETE', () => {
+        test('DELETE - status: 204 - delete the specified comment', () => {
+            return request(app).delete('/api/comments/1').expect(204);
+        });
+
+        test('DELETE - status: 404 - request is valid but not found', () => {
+            return request(app)
+                .delete('/api/comments/100')
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'comment not found!',
+                    });
+                });
+        });
+        test('DELETE - status: 400 - requested id is not valid', () => {
+            return request(app)
+                .delete('/api/comments/nonsense')
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({ msg: 'bad request!' });
+                });
+        });
+    });
+});
