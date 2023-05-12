@@ -53,12 +53,6 @@ exports.updateArticleVotes = (article_id, inc_votes) => {
             msg: 'missing required field!',
         });
     }
-    if (isNaN(inc_votes)) {
-        return Promise.reject({
-            status: 400,
-            msg: 'inc_votes must be a number!',
-        });
-    }
     return connection
         .query(
             `

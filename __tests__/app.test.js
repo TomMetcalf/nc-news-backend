@@ -366,7 +366,7 @@ describe('/api/articles/:article_id', () => {
                 .expect(400)
                 .then((response) => {
                     expect(response.body).toEqual({
-                        msg: 'inc_votes must be a number!',
+                        msg: 'bad request!',
                     });
                 });
         });
