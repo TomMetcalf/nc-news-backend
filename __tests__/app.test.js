@@ -78,7 +78,7 @@ describe('/api/articles/:article_id', () => {
             .get('/api/articles/nonsense')
             .expect(400)
             .then((response) => {
-                expect(response.body).toEqual({ msg: 'Bad Request' });
+                expect(response.body).toEqual({ msg: 'bad request!' });
             });
     });
     test('GET - status: 404 - request is valid but not found', () => {
@@ -156,45 +156,147 @@ describe('/api/articles', () => {
 });
 
 describe('/api/articles/:article_id/comments', () => {
-    test('GET - status: 200 - responds with an array of comments for the given article_id', () => {
-        return request(app)
-            .get('/api/articles/3/comments')
-            .expect(200)
-            .then((response) => {
-                const comment = response.body.comment[0];
-                expect(comment.article_id).toBe(3);
-                expect(comment.comment_id).toBe(10);
-                expect(comment.votes).toBe(0);
-                expect(comment.created_at).toBe('2020-06-20T07:24:00.000Z');
-                expect(comment.author).toBe('icellusedkars');
-                expect(comment.body).toBe('git push origin master');
-                expect(response.body.comment).toBeSortedBy('created_at', {
-                    descending: false,
+    describe('GET', () => {
+        test('GET - status: 200 - responds with an array of comments for the given article_id', () => {
+            return request(app)
+                .get('/api/articles/3/comments')
+                .expect(200)
+                .then((response) => {
+                    const comment = response.body.comment[0];
+                    expect(comment.article_id).toBe(3);
+                    expect(comment.comment_id).toBe(10);
+                    expect(comment.votes).toBe(0);
+                    expect(comment.created_at).toBe('2020-06-20T07:24:00.000Z');
+                    expect(comment.author).toBe('icellusedkars');
+                    expect(comment.body).toBe('git push origin master');
+                    expect(response.body.comment).toBeSortedBy('created_at', {
+                        descending: false,
+                    });
                 });
-            });
+        });
+        test('GET - status: 200 - responds with an empty array for an article_id that has no comments', () => {
+            return request(app)
+                .get('/api/articles/2/comments')
+                .expect(200)
+                .then((response) => {
+                    expect(response.body.comment).toEqual([]);
+                });
+        });
+        test('GET - status: 404 - request is valid but not found', () => {
+            return request(app)
+                .get('/api/articles/100/comments')
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'article not found!',
+                    });
+                });
+        });
+        test('GET - status: 400 - requested id is not valid', () => {
+            return request(app)
+                .get('/api/articles/nonsense/comments')
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({ msg: 'bad request!' });
+                });
+        });
     });
-    test('GET - status: 200 - responds with an empty array for an article_id that has no comments', () => {
-        return request(app)
-            .get('/api/articles/2/comments')
-            .expect(200)
-            .then((response) => {
-                expect(response.body.comment).toEqual([]);
-            });
-    });
-    test('GET - status: 404 - request is valid but not found', () => {
-        return request(app)
-            .get('/api/articles/100/comments')
-            .expect(404)
-            .then((response) => {
-                expect(response.body).toEqual({ msg: 'article not found!' });
-            });
-    });
-    test('GET - status: 400 - requested id is not valid', () => {
-        return request(app)
-            .get('/api/articles/nonsense/comments')
-            .expect(400)
-            .then((response) => {
-                expect(response.body).toEqual({ msg: 'Bad Request' });
-            });
+    describe('POST', () => {
+        test('POST - status: 201 - responds with newly created comment', () => {
+            const testComment = {
+                username: 'icellusedkars',
+                body: 'this is the best news ever!',
+            };
+            return request(app)
+                .post('/api/articles/6/comments')
+                .send(testComment)
+                .expect(201)
+                .then((response) => {
+                    const postedComment = response.body.comment;
+                    expect(postedComment.comment_id).toBe(19);
+                    expect(postedComment.body).toBe(
+                        'this is the best news ever!'
+                    );
+                    expect(postedComment.author).toBe('icellusedkars');
+                    expect(postedComment.votes).toBe(0);
+                    expect(typeof postedComment.created_at).toBe('string');
+                });
+        });
+        test('POST - status: 201 - responds with newly created comment, ignoring unnecessary properties', () => {
+            const testComment = {
+                username: 'icellusedkars',
+                body: 'this is the best news ever!',
+                rating: 5
+            };
+            return request(app)
+                .post('/api/articles/6/comments')
+                .send(testComment)
+                .expect(201)
+                .then((response) => {
+                    const postedComment = response.body.comment;
+                    expect(postedComment.comment_id).toBe(19);
+                    expect(postedComment.body).toBe(
+                        'this is the best news ever!'
+                    );
+                    expect(postedComment.author).toBe('icellusedkars');
+                    expect(postedComment.votes).toBe(0);
+                    expect(typeof postedComment.created_at).toBe('string');
+                });
+        });
+        test('POST - status: 400 - responds with an error if required fields are missing', () => {
+            const testComment = {
+                username: 'icellusedkars',
+            };
+            return request(app)
+                .post('/api/articles/6/comments')
+                .send(testComment)
+                .expect(400)
+                .then((response) => {
+                    expect(response.body.msg).toBe('missing required field!');
+                });
+        });
+        test('POST - status: 404 - request is valid but not found', () => {
+            const testComment = {
+                username: 'icellusedkars',
+                body: 'this is the best news ever!',
+            };
+            return request(app)
+                .post('/api/articles/100/comments')
+                .send(testComment)
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'article not found!',
+                    });
+                });
+        });
+        test('POST - status: 400 - requested id is not valid', () => {
+            const testComment = {
+                username: 'icellusedkars',
+                body: 'this is the best news ever!',
+            };
+            return request(app)
+                .post('/api/articles/nonsense/comments')
+                .send(testComment)
+                .expect(400)
+                .then((response) => {
+                    expect(response.body).toEqual({ msg: 'bad request!' });
+                });
+        });
+        test('POST - status: 404 - username is not valid', () => {
+            const testComment = {
+                username: 'jon123',
+                body: 'this is the best news ever!',
+            };
+            return request(app)
+                .post('/api/articles/6/comments')
+                .send(testComment)
+                .expect(404)
+                .then((response) => {
+                    expect(response.body).toEqual({
+                        msg: 'user does not exist!',
+                    });
+                });
+        });
     });
 });
