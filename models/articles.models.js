@@ -22,7 +22,14 @@ exports.fetchArticles = (
 ) => {
     const validSortQueries = ['created_at'];
     const validOrderQueries = ['asc', 'desc'];
-    const validTopics = ['mitch', 'cats', 'paper'];
+    const validTopics = [
+        'mitch',
+        'cats',
+        'paper',
+        'coding',
+        'football',
+        'cooking',
+    ];
     if (!validSortQueries.includes(sort_by)) {
         return Promise.reject({ status: 400, msg: 'invalid sort query' });
     }
