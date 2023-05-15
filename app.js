@@ -6,8 +6,12 @@ const {
     getArticles,
     getCommentsByArticleId,
     patchArticleVotesByArticleId,
+    getArticleByTopic,
 } = require('./controllers/articles.controllers');
-const { postComment, deleteComment } = require('./controllers/comment.controllers');
+const {
+    postComment,
+    deleteComment,
+} = require('./controllers/comment.controllers');
 const { getUsers } = require('./controllers/users.controllers');
 const app = express();
 

@@ -15,22 +15,36 @@ exports.selectArticleById = (article_id) => {
         });
 };
 
-exports.fetchArticles = (sort_by = 'created_at', order = 'desc') => {
+exports.fetchArticles = (
+    topic = null,
+    sort_by = 'created_at',
+    order = 'desc'
+) => {
     const validSortQueries = ['created_at'];
     const validOrderQueries = ['asc', 'desc'];
+    const validTopics = ['mitch', 'cats', 'paper'];
     if (!validSortQueries.includes(sort_by)) {
         return Promise.reject({ status: 400, msg: 'invalid sort query' });
     }
     if (!validOrderQueries.includes(order)) {
         return Promise.reject({ status: 400, msg: 'invalid order query' });
     }
-    return connection
-        .query(
-            `SELECT articles.author, articles.title, articles.article_id, articles.topic,articles.created_at,articles.votes,articles.article_img_url,COUNT(comments.comment_id)::int AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id GROUP BY articles.article_id ORDER BY ${sort_by} ${order}`
-        )
-        .then((articles) => {
-            return articles.rows;
-        });
+    if (topic && !validTopics.includes(topic)) {
+        return Promise.reject({ status: 400, msg: 'invalid topic' });
+    }
+    let query = `
+    SELECT articles.author, articles.title, articles.article_id, articles.topic, articles.created_at, articles.votes, articles.article_img_url, COUNT(comments.comment_id)::int AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id
+  `;
+
+    if (topic) {
+        query += ` WHERE articles.topic = '${topic}'`;
+    }
+
+    query += ` GROUP BY articles.article_id ORDER BY ${sort_by} ${order}`;
+
+    return connection.query(query).then((articles) => {
+        return articles.rows;
+    });
 };
 
 exports.selectCommentsByArticleId = (article_id) => {
