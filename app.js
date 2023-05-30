@@ -1,20 +1,22 @@
+const cors = require('cors');
 const express = require('express');
 const { getTopics } = require('./controllers/topics.controllers');
 const { getStatus } = require('./controllers/api.controllers');
 const {
-    getArticleById,
-    getArticles,
-    getCommentsByArticleId,
-    patchArticleVotesByArticleId,
-    getArticleByTopic,
+  getArticleById,
+  getArticles,
+  getCommentsByArticleId,
+  patchArticleVotesByArticleId,
+  getArticleByTopic,
 } = require('./controllers/articles.controllers');
 const {
-    postComment,
-    deleteComment,
+  postComment,
+  deleteComment,
 } = require('./controllers/comment.controllers');
 const { getUsers } = require('./controllers/users.controllers');
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.get('/api/topics', getTopics);
@@ -28,25 +30,25 @@ app.delete('/api/comments/:comment_id', deleteComment);
 app.get('/api/users', getUsers);
 
 app.use((err, req, res, next) => {
-    if (err.code === '22P02') {
-        res.status(400).send({ msg: 'bad request!' });
-    } else next(err);
+  if (err.code === '22P02') {
+    res.status(400).send({ msg: 'bad request!' });
+  } else next(err);
 });
 
 app.use((err, req, res, next) => {
-    if (err.status && err.msg) {
-        res.status(err.status).send({ msg: err.msg });
-    } else next(err);
+  if (err.status && err.msg) {
+    res.status(err.status).send({ msg: err.msg });
+  } else next(err);
 });
 
 app.use((err, req, res, next) => {
-    console.log(err);
-    console.log(err.code);
-    res.status(500).send({ msg: 'Internal Server Error!' });
+  console.log(err);
+  console.log(err.code);
+  res.status(500).send({ msg: 'Internal Server Error!' });
 });
 
 app.all('*', (req, res) => {
-    res.status(404).send({ msg: 'not found!' });
+  res.status(404).send({ msg: 'not found!' });
 });
 
 module.exports = app;
