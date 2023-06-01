@@ -20,7 +20,7 @@ exports.fetchArticles = (
     sort_by = 'created_at',
     order = 'desc'
 ) => {
-    const validSortQueries = ['created_at'];
+    const validSortQueries = ['created_at', 'comment_count', 'votes'];
     const validOrderQueries = ['asc', 'desc'];
     const validTopics = [
         'mitch',
