@@ -1,5 +1,14 @@
 # Northcoders News API
 
+The accompanying front end for this project can be viewed here:
+
+- Github
+https://github.com/TomMetcalf/nc-news-frontend
+
+- Netlify
+https://nc-news-read-all-about-it.netlify.app/
+
+
 ## Project Summary
 
 This API provides endpoints to access and manipulate data related to articles, comments, topics, and users.
